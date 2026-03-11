@@ -1,0 +1,128 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MANAGER
+  REP
+}
+
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  passwordHash String
+  role         Role     @default(REP)
+  rep          Rep?
+  createdAt    DateTime @default(now())
+}
+
+model Rep {
+  id          Int           @id @default(autoincrement())
+  userId      Int?          @unique
+  user        User?         @relation(fields: [userId], references: [id])
+  name        String
+  email       String        @unique
+  active      Boolean       @default(true)
+  convosoId   String?       @unique
+  weeklyStats WeeklyStat[]
+  notes       ManagerNote[]
+  goals       RepGoal[]
+  createdAt   DateTime      @default(now())
+}
+
+model WeeklyStat {
+  id           Int      @id @default(autoincrement())
+  repId        Int
+  rep          Rep      @relation(fields: [repId], references: [id])
+  weekStart    DateTime
+  calls        Int      @default(0)
+  contacts     Int      @default(0)
+  sched        Int      @default(0)
+  hires        Int      @default(0)
+  noAns        Int      @default(0)
+  hu           Int      @default(0)
+  ngf          Int      @default(0)
+  fu           Int      @default(0)
+  alreadySched Int      @default(0)
+  dupe         Int      @default(0)
+  eodYes       Int      @default(0)
+  eodNo        Int      @default(0)
+  talkMin      Float    @default(0)
+  waitMin      Float    @default(0)
+  pauseMin     Float    @default(0)
+  wrapMin      Float    @default(0)
+  loginMin     Float    @default(0)
+  compositeScore Float?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@unique([repId, weekStart])
+}
+
+model ClientList {
+  id        Int        @id @default(autoincrement())
+  name      String
+  industry  String?
+  source    String?
+  listStats ListStat[]
+  createdAt DateTime   @default(now())
+}
+
+model ListStat {
+  id        Int        @id @default(autoincrement())
+  listId    Int
+  list      ClientList @relation(fields: [listId], references: [id])
+  weekStart DateTime
+  calls     Int        @default(0)
+  contacts  Int        @default(0)
+  sched     Int        @default(0)
+  createdAt DateTime   @default(now())
+
+  @@unique([listId, weekStart])
+}
+
+model SyncLog {
+  id             Int       @id @default(autoincrement())
+  type           String
+  status         String
+  recordsUpdated Int       @default(0)
+  weekStart      DateTime?
+  errorMessage   String?
+  startedAt      DateTime  @default(now())
+  completedAt    DateTime?
+}
+
+model ManagerNote {
+  id        Int      @id @default(autoincrement())
+  repId     Int
+  rep       Rep      @relation(fields: [repId], references: [id])
+  weekStart DateTime
+  content   String
+  authorId  Int
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model RepGoal {
+  id        Int      @id @default(autoincrement())
+  repId     Int
+  rep       Rep      @relation(fields: [repId], references: [id])
+  weekStart DateTime
+  metric    String
+  target    Float
+  createdAt DateTime @default(now())
+
+  @@unique([repId, weekStart, metric])
+}
+
+model AppSetting {
+  id        Int      @id @default(autoincrement())
+  key       String   @unique
+  value     String
+  updatedAt DateTime @updatedAt
+}

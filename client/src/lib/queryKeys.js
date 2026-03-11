@@ -1,0 +1,18 @@
+export const queryKeys = {
+  weeks:        ()               => ['weeks'],
+  stats:        (week)           => ['stats', week ?? 'latest'],
+  repStats:     (repId, week)    => ['stats', repId, week ?? 'latest'],
+  repTrends:    (repId, n)       => ['trends', repId, n ?? 8],
+  insights:     (repId, week)    => ['insights', repId, week ?? 'latest'],
+  allInsights:  (week)           => ['insights', 'all', week ?? 'latest'],
+  reps:         ()               => ['reps'],
+  rep:          (id)             => ['reps', id],
+  lists:        (week)           => ['lists', week ?? 'latest'],
+  list:         (id)             => ['lists', id],
+  notes:        (repId, week)    => ['notes', repId, week ?? 'latest'],
+  goals:        (repId, week)    => ['goals', repId, week ?? 'latest'],
+  syncLogs:     ()               => ['syncLogs'],
+  syncLog:      (id)             => ['syncLogs', id],
+  settings:     ()               => ['settings'],
+  users:        ()               => ['users'],
+}
