@@ -1,0 +1,64 @@
+version: '3.8'
+
+services:
+  db:
+    image: postgres:15-alpine
+    environment:
+      POSTGRES_DB: recruitiq
+      POSTGRES_USER: recruitiq
+      POSTGRES_PASSWORD: recruitiq_dev
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - app-net
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U recruitiq"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  server:
+    build: ./server
+    ports:
+      - "4000:4000"
+    environment:
+      DATABASE_URL: postgresql://recruitiq:recruitiq_dev@db:5432/recruitiq
+      JWT_SECRET: dev_jwt_secret_change_in_production
+      JWT_EXPIRES_IN: 7d
+      CONVOSO_BASE_URL: https://api.convoso.com
+      CONVOSO_API_KEY: ""
+      GOOGLE_SERVICE_ACCOUNT_EMAIL: ""
+      GOOGLE_PRIVATE_KEY: ""
+      GOOGLE_SPREADSHEET_ID: ""
+      CRON_SCHEDULE: "*/15 7-20 * * 1-5"
+      PORT: 4000
+      NODE_ENV: development
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - ./server:/app
+      - /app/node_modules
+    networks:
+      - app-net
+
+  client:
+    build: ./client
+    ports:
+      - "5173:5173"
+    depends_on:
+      - server
+    volumes:
+      - ./client:/app
+      - /app/node_modules
+    networks:
+      - app-net
+
+volumes:
+  pgdata:
+
+networks:
+  app-net:
+    driver: bridge
